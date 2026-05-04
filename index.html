@@ -1402,7 +1402,186 @@ const COUNTRIES = [
   {n:"Zambia",c:"Lusaka",f:"🇿🇲",r:"Southern Africa"},
   {n:"Zimbabwe",c:"Harare",f:"🇿🇼",r:"Southern Africa"}
 ];
+/* =========================================================
+   EXTRA PRACTICE QUESTIONS — edit this list directly
+   These appear in Practice mode alongside the country/capital
+   questions auto-generated from COUNTRIES above.
 
+   Format:
+     prompt:  short eyebrow text shown above the question (UPPERCASE works best)
+     text:    the question itself (leave empty if using a flag)
+     flag:    emoji flag (optional)
+     correct: the right answer
+     wrong:   array of 3 wrong answers
+     region:  "all" | "West Africa" | "East Africa" | "North Africa" | "Central Africa" | "Southern Africa"
+     fact:    explanation shown after answering
+     modes:   which Practice modes this question can appear in
+              ["quick", "marathon"] is typical. Use ["marathon"] only for harder questions.
+========================================================= */
+const EXTRA_PRACTICE_QUESTIONS = [
+  {
+    prompt: "HIGHEST PEAK",
+    text: "Africa's highest mountain is in which country?",
+    correct: "Tanzania",
+    wrong: ["Kenya", "Uganda", "Ethiopia"],
+    region: "East Africa",
+    fact: "Mount Kilimanjaro stands at 5,895m and has three volcanic cones — Kibo, Mawenzi, and Shira.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "BIGGEST BY AREA",
+    text: "What is Africa's largest country by land area?",
+    correct: "Algeria",
+    wrong: ["DR Congo", "Sudan", "Libya"],
+    region: "all",
+    fact: "Algeria covers 2.38 million km². It became the largest African country after South Sudan separated from Sudan in 2011.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "MOST POPULOUS",
+    text: "Africa's most populous country is —",
+    correct: "Nigeria",
+    wrong: ["Ethiopia", "Egypt", "DR Congo"],
+    region: "all",
+    fact: "Nigeria has over 220 million people — about 1 in every 6 Africans is Nigerian.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "GOLDEN EMPIRE",
+    text: "The legendary Mansa Musa ruled which empire?",
+    correct: "Mali",
+    wrong: ["Songhai", "Ghana Empire", "Aksum"],
+    region: "West Africa",
+    fact: "Mansa Musa's 14th-century pilgrimage to Mecca distributed so much gold it caused inflation in Cairo for years.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "FIRST TO FREEDOM",
+    text: "The first sub-Saharan African nation to gain independence from colonial rule was —",
+    correct: "Ghana",
+    wrong: ["Nigeria", "Kenya", "Senegal"],
+    region: "West Africa",
+    fact: "Ghana gained independence on 6 March 1957 under Kwame Nkrumah, igniting the African independence wave.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "MADIBA'S YEARS",
+    text: "How many years was Nelson Mandela imprisoned?",
+    correct: "27",
+    wrong: ["18", "30", "22"],
+    region: "Southern Africa",
+    fact: "Mandela was imprisoned from 1962 to 1990. He was freed at age 71 and became South Africa's first democratically elected president in 1994.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "BATTLE OF ADWA",
+    text: "In 1896, this country defeated Italy and remained uncolonized —",
+    correct: "Ethiopia",
+    wrong: ["Liberia", "Egypt", "Morocco"],
+    region: "East Africa",
+    fact: "Emperor Menelik II's victory at Adwa preserved Ethiopian sovereignty and inspired anti-colonial movements across Africa.",
+    modes: ["marathon"]
+  },
+  {
+    prompt: "LINGUA FRANCA",
+    text: "Which language is spoken across East Africa as a lingua franca?",
+    correct: "Swahili",
+    wrong: ["Hausa", "Amharic", "Wolof"],
+    region: "East Africa",
+    fact: "Kiswahili is spoken by over 200 million people and is an official language of Kenya, Tanzania, Uganda, Rwanda, and the African Union.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "AFRICAN UNION HQ",
+    text: "Where is the African Union headquartered?",
+    correct: "Addis Ababa",
+    wrong: ["Nairobi", "Cairo", "Lagos"],
+    region: "all",
+    fact: "The AU has been headquartered in Addis Ababa, Ethiopia since 1963.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "ALU HOME",
+    text: "In which city is African Leadership University (ALU) headquartered?",
+    correct: "Kigali",
+    wrong: ["Nairobi", "Cape Town", "Lagos"],
+    region: "all",
+    fact: "ALU is based in Kigali, Rwanda — re-imagining higher education for Africa.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "MOBILE MONEY",
+    text: "M-Pesa — Africa's mobile money revolution — was launched in —",
+    correct: "Kenya",
+    wrong: ["Nigeria", "South Africa", "Ghana"],
+    region: "East Africa",
+    fact: "Safaricom launched M-Pesa in 2007. It now serves over 50 million customers across Africa.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "NOLLYWOOD",
+    text: "Africa's largest film industry by output is based in —",
+    correct: "Nigeria",
+    wrong: ["South Africa", "Egypt", "Kenya"],
+    region: "West Africa",
+    fact: "Nollywood produces over 2,500 films a year — the second-largest film industry in the world by volume after Bollywood.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "AFCON CHAMPIONS",
+    text: "Which country has won the most Africa Cup of Nations titles?",
+    correct: "Egypt",
+    wrong: ["Cameroon", "Ghana", "Nigeria"],
+    region: "North Africa",
+    fact: "Egypt has won AFCON seven times, the most of any nation.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "OLDEST UNIVERSITY",
+    text: "The world's oldest continuously operating university is in —",
+    correct: "Morocco",
+    wrong: ["Egypt", "Tunisia", "Mali"],
+    region: "North Africa",
+    fact: "Al-Qarawiyyin in Fez, Morocco was founded in 859 CE by Fatima al-Fihri — and is still operating today.",
+    modes: ["marathon"]
+  },
+  {
+    prompt: "GOAT MARATHONER",
+    text: "Eliud Kipchoge — first human to run a sub-2-hour marathon — is from —",
+    correct: "Kenya",
+    wrong: ["Ethiopia", "Tanzania", "Eritrea"],
+    region: "East Africa",
+    fact: "Kipchoge ran 1:59:40 in Vienna in 2019. He holds the official world marathon record.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "GREAT GREEN WALL",
+    text: "Africa's ambitious 'Great Green Wall' aims to combat —",
+    correct: "desertification",
+    wrong: ["deforestation", "pollution", "flooding"],
+    region: "all",
+    fact: "The Great Green Wall is an 8,000 km mosaic of restored landscapes stretching from Senegal to Djibouti — battling the Sahara's southward advance.",
+    modes: ["marathon"]
+  },
+  {
+    prompt: "FIRST FEMALE PRESIDENT",
+    text: "The first elected female head of state in Africa was Ellen Johnson Sirleaf of —",
+    correct: "Liberia",
+    wrong: ["Malawi", "Ethiopia", "Rwanda"],
+    region: "West Africa",
+    fact: "Sirleaf was elected President of Liberia in 2005 and won the Nobel Peace Prize in 2011.",
+    modes: ["quick", "marathon"]
+  },
+  {
+    prompt: "THINGS FALL APART",
+    text: "'Things Fall Apart' was written by Chinua Achebe of —",
+    correct: "Nigeria",
+    wrong: ["Ghana", "Kenya", "South Africa"],
+    region: "West Africa",
+    fact: "Published in 1958, it is the most-read African novel of all time and a foundational text of post-colonial literature.",
+    modes: ["marathon"]
+  }
+];
 /* =========================================================
    API CLIENT — talks to Apps Script Web App
 ========================================================= */
@@ -1582,8 +1761,53 @@ function buildLocalQuestions() {
   } else {
     count = Math.min(State.count, pool.length); types = ['flag-country', 'country-capital', 'capital-country', 'flag-capital'];
   }
+
+  // Build country-based questions from COUNTRIES array
   const picked = shuffle(pool).slice(0, count);
-  return picked.map(c => generateLocalQuestion(c, types[Math.floor(Math.random() * types.length)], pool));
+  const countryQuestions = picked.map(c =>
+    generateLocalQuestion(c, types[Math.floor(Math.random() * types.length)], pool)
+  );
+
+  // Skip extras for "flags only" or "capitals only" modes — they should stay focused
+  if (State.mode === 'flags' || State.mode === 'capitals') {
+    return countryQuestions;
+  }
+
+  // Filter EXTRA_PRACTICE_QUESTIONS by current mode and region
+  const extras = EXTRA_PRACTICE_QUESTIONS
+    .filter(q => q.modes.includes(State.mode))
+    .filter(q => State.region === 'all' || q.region === 'all' || q.region === State.region)
+    .map(q => ({
+      prompt: q.prompt,
+      text: q.text || '',
+      flag: q.flag || '',
+      correct: q.correct,
+      options: shuffle([q.correct, ...q.wrong]),
+      fact: q.fact || '',
+      country_name: '',
+      country_capital: '',
+      country_region: q.region
+    }));
+
+  // Mix country questions and extras — ratio depends on mode
+  // Quick: aim for ~30% extras. Marathon: include all matching extras.
+  let mixedExtras;
+  if (State.mode === 'marathon') {
+    mixedExtras = shuffle(extras);
+  } else {
+    const targetExtras = Math.min(extras.length, Math.ceil(count * 0.3));
+    mixedExtras = shuffle(extras).slice(0, targetExtras);
+  }
+
+  // Combine and shuffle the final set
+  const combined = shuffle([...countryQuestions, ...mixedExtras]);
+
+  // For non-marathon modes, trim back to the requested count so it stays predictable
+  if (State.mode === 'marathon') {
+    return combined;
+  } else {
+    return combined.slice(0, count);
+  }
 }
 
 function normalizeApiQuestion(q) {
