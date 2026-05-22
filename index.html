@@ -560,11 +560,153 @@
   .score-chip {
     font-family: var(--mono);
     font-weight: 700;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--black);
     background: var(--gold);
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 999px;
+    transition: transform .15s ease;
+    position: relative;
+    box-shadow: 0 0 0 0 rgba(212,175,55,.6);
+  }
+  .score-chip.bump {
+    animation: scoreBump .6s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes scoreBump {
+    0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(212,175,55,.6); }
+    40%  { transform: scale(1.25); box-shadow: 0 0 0 12px rgba(212,175,55,0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212,175,55,0); }
+  }
+  .score-pop {
+    position: absolute;
+    top: -8px; right: -4px;
+    font-family: var(--mono);
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--gold-light);
+    text-shadow: 0 0 8px rgba(212,175,55,.6);
+    pointer-events: none;
+    opacity: 0;
+  }
+  .score-pop.fly {
+    animation: scorePop 1s cubic-bezier(.2, .8, .3, 1.2) forwards;
+  }
+  @keyframes scorePop {
+    0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+    20%  { opacity: 1; transform: translateY(-4px) scale(1.1); }
+    100% { opacity: 0; transform: translateY(-40px) scale(1); }
+  }
+
+  /* Live position pill (under timer ring) */
+  .live-position {
+    text-align: center;
+    margin: -4px 0 14px;
+    min-height: 18px;
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--cream-dim);
+    transition: opacity .3s ease;
+    font-family: var(--body);
+  }
+  .live-position b { color: var(--gold); font-weight: 700; }
+  .live-position .pos-rank {
+    background: var(--gold);
+    color: var(--black);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-weight: 700;
+    margin: 0 4px;
+  }
+  .live-position .pos-rank.lead {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    box-shadow: 0 0 12px rgba(212,175,55,.5);
+  }
+
+  /* Host live activity feed */
+  .live-feed {
+    background: rgba(212,175,55,.03);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 12px 14px;
+    margin: 12px 0;
+    max-height: 180px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .live-feed-title {
+    font-size: 10px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px var(--gold);
+    animation: livePulse 1.4s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%, 100% { opacity: .4; transform: scale(.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+  .live-feed-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 13px;
+    animation: feedSlide .4s ease-out;
+  }
+  .live-feed-item:last-child { border-bottom: 0; }
+  .live-feed-item.fresh {
+    animation: feedFresh 1s ease-out;
+  }
+  @keyframes feedSlide {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes feedFresh {
+    0%   { background: rgba(212,175,55,.18); }
+    100% { background: transparent; }
+  }
+  .live-feed-item .who { flex: 1; font-weight: 600; }
+  .live-feed-item .who small { color: var(--cream-dim); font-weight: 500; margin-left: 6px; font-size: 11px; }
+  .live-feed-item .pts {
+    font-family: var(--mono);
+    font-weight: 700;
+    color: var(--gold);
+    font-size: 13px;
+  }
+  .live-feed-empty {
+    text-align: center;
+    color: var(--cream-faint);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    padding: 8px 0;
+  }
+
+  /* Auto-refresh indicator on leaderboards */
+  .auto-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--gold);
+    font-family: var(--body);
   }
 
   .timer-ring {
@@ -1163,6 +1305,17 @@
             Students go to <b>this same URL</b>, tap <b>Join with Code</b>, enter the PIN and their name.
           </div>
 
+          <div class="live-feed" id="hostLiveFeed">
+            <div class="live-feed-title">
+              <span class="live-dot"></span>
+              <span>Live Activity</span>
+              <span class="auto-refresh" id="liveFeedRefresh" style="margin-left:auto;">↻ Auto</span>
+            </div>
+            <div id="hostLiveFeedList">
+              <div class="live-feed-empty">Waiting for players to finish their round…</div>
+            </div>
+          </div>
+
           <div class="btn-row">
             <button class="btn ghost" id="copyPin">📋 Copy PIN</button>
             <button class="btn" id="sharePin">↗ Share</button>
@@ -1171,7 +1324,7 @@
             <button class="btn terra" id="hostPlayNow">Play This Round Myself</button>
           </div>
           <div class="btn-row">
-            <button class="btn ghost" id="hostViewLb">View Live Leaderboard</button>
+            <button class="btn ghost" id="hostViewLb">View Full Leaderboard</button>
           </div>
           <div class="btn-row">
             <button class="btn ghost" data-back>Back to Home</button>
@@ -1210,7 +1363,7 @@
         <div class="game-head">
           <div class="qcount"><b id="qNum">1</b>/<span id="qTotal">10</span></div>
           <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-          <div class="score-chip" id="scoreChip">0 pts</div>
+          <div class="score-chip" id="scoreChip">0 pts<span class="score-pop" id="scorePop"></span></div>
         </div>
 
         <div class="timer-ring">
@@ -1220,6 +1373,8 @@
           </svg>
           <div class="timer-num" id="timerNum">15</div>
         </div>
+
+        <div class="live-position" id="livePosition"></div>
 
         <div class="question-card" id="questionCard">
           <p class="qprompt" id="qPrompt">FLAG OF —</p>
@@ -1281,7 +1436,12 @@
           <div class="setup-head">
             <button class="setup-back" data-back>Back</button>
             <h2>Session Leaderboard</h2>
-            <p class="sub">Live results for this game code.</p>
+            <p class="sub">
+              <span id="sessionLbLiveLabel" style="display:inline-flex;align-items:center;gap:6px;">
+                <span class="live-dot"></span>
+                <span>Auto-refreshing every 4 seconds</span>
+              </span>
+            </p>
           </div>
           <div class="lb-meta">
             <div>
@@ -1294,7 +1454,7 @@
             <div class="lb-empty">No scores yet — waiting for players to finish.</div>
           </div>
           <div class="btn-row">
-            <button class="btn ghost" id="refreshSessionLb">↻ Refresh</button>
+            <button class="btn ghost" id="refreshSessionLb">↻ Refresh now</button>
             <button class="btn" id="shareSessionLb">↗ Share</button>
           </div>
         </div>
@@ -1320,7 +1480,7 @@
     </main>
 
     <footer class="footer">
-      Built at <b>ALU</b> · Powered by Student Companion AI · v2.0
+      Built at <b>ALU</b> · Re-imagine Africa · v2.0
     </footer>
   </div>
 
@@ -1339,7 +1499,7 @@
    Get it from: Code.gs → Deploy → New deployment → Web app
    It looks like: https://script.google.com/macros/s/AKfy.../exec
 ========================================================= */
-const API_URL = 'https://script.google.com/macros/s/AKfycbx8R52CgpmbW9UcVicUjpCHe8yiL1KZIK2V_ijlcqFN_5HoIo_NFPEoq8vyFuvp_BUM/exec';
+const API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
 const API_CONFIGURED = API_URL && !API_URL.startsWith('PASTE_');
 
@@ -1402,186 +1562,7 @@ const COUNTRIES = [
   {n:"Zambia",c:"Lusaka",f:"🇿🇲",r:"Southern Africa"},
   {n:"Zimbabwe",c:"Harare",f:"🇿🇼",r:"Southern Africa"}
 ];
-/* =========================================================
-   EXTRA PRACTICE QUESTIONS — edit this list directly
-   These appear in Practice mode alongside the country/capital
-   questions auto-generated from COUNTRIES above.
 
-   Format:
-     prompt:  short eyebrow text shown above the question (UPPERCASE works best)
-     text:    the question itself (leave empty if using a flag)
-     flag:    emoji flag (optional)
-     correct: the right answer
-     wrong:   array of 3 wrong answers
-     region:  "all" | "West Africa" | "East Africa" | "North Africa" | "Central Africa" | "Southern Africa"
-     fact:    explanation shown after answering
-     modes:   which Practice modes this question can appear in
-              ["quick", "marathon"] is typical. Use ["marathon"] only for harder questions.
-========================================================= */
-const EXTRA_PRACTICE_QUESTIONS = [
-  {
-    prompt: "HIGHEST PEAK",
-    text: "Africa's highest mountain is in which country?",
-    correct: "Tanzania",
-    wrong: ["Kenya", "Uganda", "Ethiopia"],
-    region: "East Africa",
-    fact: "Mount Kilimanjaro stands at 5,895m and has three volcanic cones — Kibo, Mawenzi, and Shira.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "BIGGEST BY AREA",
-    text: "What is Africa's largest country by land area?",
-    correct: "Algeria",
-    wrong: ["DR Congo", "Sudan", "Libya"],
-    region: "all",
-    fact: "Algeria covers 2.38 million km². It became the largest African country after South Sudan separated from Sudan in 2011.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "MOST POPULOUS",
-    text: "Africa's most populous country is —",
-    correct: "Nigeria",
-    wrong: ["Ethiopia", "Egypt", "DR Congo"],
-    region: "all",
-    fact: "Nigeria has over 220 million people — about 1 in every 6 Africans is Nigerian.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "GOLDEN EMPIRE",
-    text: "The legendary Mansa Musa ruled which empire?",
-    correct: "Mali",
-    wrong: ["Songhai", "Ghana Empire", "Aksum"],
-    region: "West Africa",
-    fact: "Mansa Musa's 14th-century pilgrimage to Mecca distributed so much gold it caused inflation in Cairo for years.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "FIRST TO FREEDOM",
-    text: "The first sub-Saharan African nation to gain independence from colonial rule was —",
-    correct: "Ghana",
-    wrong: ["Nigeria", "Kenya", "Senegal"],
-    region: "West Africa",
-    fact: "Ghana gained independence on 6 March 1957 under Kwame Nkrumah, igniting the African independence wave.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "MADIBA'S YEARS",
-    text: "How many years was Nelson Mandela imprisoned?",
-    correct: "27",
-    wrong: ["18", "30", "22"],
-    region: "Southern Africa",
-    fact: "Mandela was imprisoned from 1962 to 1990. He was freed at age 71 and became South Africa's first democratically elected president in 1994.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "BATTLE OF ADWA",
-    text: "In 1896, this country defeated Italy and remained uncolonized —",
-    correct: "Ethiopia",
-    wrong: ["Liberia", "Egypt", "Morocco"],
-    region: "East Africa",
-    fact: "Emperor Menelik II's victory at Adwa preserved Ethiopian sovereignty and inspired anti-colonial movements across Africa.",
-    modes: ["marathon"]
-  },
-  {
-    prompt: "LINGUA FRANCA",
-    text: "Which language is spoken across East Africa as a lingua franca?",
-    correct: "Swahili",
-    wrong: ["Hausa", "Amharic", "Wolof"],
-    region: "East Africa",
-    fact: "Kiswahili is spoken by over 200 million people and is an official language of Kenya, Tanzania, Uganda, Rwanda, and the African Union.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "AFRICAN UNION HQ",
-    text: "Where is the African Union headquartered?",
-    correct: "Addis Ababa",
-    wrong: ["Nairobi", "Cairo", "Lagos"],
-    region: "all",
-    fact: "The AU has been headquartered in Addis Ababa, Ethiopia since 1963.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "ALU HOME",
-    text: "In which city is African Leadership University (ALU) headquartered?",
-    correct: "Kigali",
-    wrong: ["Nairobi", "Cape Town", "Lagos"],
-    region: "all",
-    fact: "ALU is based in Kigali, Rwanda — re-imagining higher education for Africa.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "MOBILE MONEY",
-    text: "M-Pesa — Africa's mobile money revolution — was launched in —",
-    correct: "Kenya",
-    wrong: ["Nigeria", "South Africa", "Ghana"],
-    region: "East Africa",
-    fact: "Safaricom launched M-Pesa in 2007. It now serves over 50 million customers across Africa.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "NOLLYWOOD",
-    text: "Africa's largest film industry by output is based in —",
-    correct: "Nigeria",
-    wrong: ["South Africa", "Egypt", "Kenya"],
-    region: "West Africa",
-    fact: "Nollywood produces over 2,500 films a year — the second-largest film industry in the world by volume after Bollywood.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "AFCON CHAMPIONS",
-    text: "Which country has won the most Africa Cup of Nations titles?",
-    correct: "Egypt",
-    wrong: ["Cameroon", "Ghana", "Nigeria"],
-    region: "North Africa",
-    fact: "Egypt has won AFCON seven times, the most of any nation.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "OLDEST UNIVERSITY",
-    text: "The world's oldest continuously operating university is in —",
-    correct: "Morocco",
-    wrong: ["Egypt", "Tunisia", "Mali"],
-    region: "North Africa",
-    fact: "Al-Qarawiyyin in Fez, Morocco was founded in 859 CE by Fatima al-Fihri — and is still operating today.",
-    modes: ["marathon"]
-  },
-  {
-    prompt: "GOAT MARATHONER",
-    text: "Eliud Kipchoge — first human to run a sub-2-hour marathon — is from —",
-    correct: "Kenya",
-    wrong: ["Ethiopia", "Tanzania", "Eritrea"],
-    region: "East Africa",
-    fact: "Kipchoge ran 1:59:40 in Vienna in 2019. He holds the official world marathon record.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "GREAT GREEN WALL",
-    text: "Africa's ambitious 'Great Green Wall' aims to combat —",
-    correct: "desertification",
-    wrong: ["deforestation", "pollution", "flooding"],
-    region: "all",
-    fact: "The Great Green Wall is an 8,000 km mosaic of restored landscapes stretching from Senegal to Djibouti — battling the Sahara's southward advance.",
-    modes: ["marathon"]
-  },
-  {
-    prompt: "FIRST FEMALE PRESIDENT",
-    text: "The first elected female head of state in Africa was Ellen Johnson Sirleaf of —",
-    correct: "Liberia",
-    wrong: ["Malawi", "Ethiopia", "Rwanda"],
-    region: "West Africa",
-    fact: "Sirleaf was elected President of Liberia in 2005 and won the Nobel Peace Prize in 2011.",
-    modes: ["quick", "marathon"]
-  },
-  {
-    prompt: "THINGS FALL APART",
-    text: "'Things Fall Apart' was written by Chinua Achebe of —",
-    correct: "Nigeria",
-    wrong: ["Ghana", "Kenya", "South Africa"],
-    region: "West Africa",
-    fact: "Published in 1958, it is the most-read African novel of all time and a foundational text of post-colonial literature.",
-    modes: ["marathon"]
-  }
-];
 /* =========================================================
    API CLIENT — talks to Apps Script Web App
 ========================================================= */
@@ -1761,53 +1742,8 @@ function buildLocalQuestions() {
   } else {
     count = Math.min(State.count, pool.length); types = ['flag-country', 'country-capital', 'capital-country', 'flag-capital'];
   }
-
-  // Build country-based questions from COUNTRIES array
   const picked = shuffle(pool).slice(0, count);
-  const countryQuestions = picked.map(c =>
-    generateLocalQuestion(c, types[Math.floor(Math.random() * types.length)], pool)
-  );
-
-  // Skip extras for "flags only" or "capitals only" modes — they should stay focused
-  if (State.mode === 'flags' || State.mode === 'capitals') {
-    return countryQuestions;
-  }
-
-  // Filter EXTRA_PRACTICE_QUESTIONS by current mode and region
-  const extras = EXTRA_PRACTICE_QUESTIONS
-    .filter(q => q.modes.includes(State.mode))
-    .filter(q => State.region === 'all' || q.region === 'all' || q.region === State.region)
-    .map(q => ({
-      prompt: q.prompt,
-      text: q.text || '',
-      flag: q.flag || '',
-      correct: q.correct,
-      options: shuffle([q.correct, ...q.wrong]),
-      fact: q.fact || '',
-      country_name: '',
-      country_capital: '',
-      country_region: q.region
-    }));
-
-  // Mix country questions and extras — ratio depends on mode
-  // Quick: aim for ~30% extras. Marathon: include all matching extras.
-  let mixedExtras;
-  if (State.mode === 'marathon') {
-    mixedExtras = shuffle(extras);
-  } else {
-    const targetExtras = Math.min(extras.length, Math.ceil(count * 0.3));
-    mixedExtras = shuffle(extras).slice(0, targetExtras);
-  }
-
-  // Combine and shuffle the final set
-  const combined = shuffle([...countryQuestions, ...mixedExtras]);
-
-  // For non-marathon modes, trim back to the requested count so it stays predictable
-  if (State.mode === 'marathon') {
-    return combined;
-  } else {
-    return combined.slice(0, count);
-  }
+  return picked.map(c => generateLocalQuestion(c, types[Math.floor(Math.random() * types.length)], pool));
 }
 
 function normalizeApiQuestion(q) {
@@ -1853,8 +1789,105 @@ function startGame() {
   State.streak = 0;
   State.bestStreak = 0;
   $('qTotal').textContent = State.questions.length;
+  updateScoreChip(0, false);
+  $('livePosition').innerHTML = '';
   showScreen('game');
+  // Start fetching live position every few seconds during gameplay
+  startLivePositionPolling();
   renderQuestion();
+}
+
+function updateScoreChip(score, animate) {
+  const chip = $('scoreChip');
+  // Preserve the score-pop child element
+  const pop = $('scorePop');
+  chip.firstChild.nodeValue = score + ' pts';
+  if (animate) {
+    chip.classList.remove('bump');
+    void chip.offsetWidth; // restart animation
+    chip.classList.add('bump');
+  }
+}
+
+function showScorePop(earned) {
+  const pop = $('scorePop');
+  if (!pop) return;
+  pop.textContent = '+' + earned;
+  pop.classList.remove('fly');
+  void pop.offsetWidth;
+  pop.classList.add('fly');
+}
+
+/* =========================================================
+   LIVE POSITION (during gameplay)
+   Polls the session leaderboard every 6 seconds so players see
+   where they stand without waiting for the round to end.
+========================================================= */
+let livePositionTimer = null;
+function startLivePositionPolling() {
+  stopLivePositionPolling();
+  // Only show during sessions, not solo practice
+  if (!API_CONFIGURED || !State.sessionCode || State.flow === 'practice') return;
+  // First fetch after 5s, then every 6s
+  livePositionTimer = setTimeout(function tick() {
+    fetchLivePosition();
+    livePositionTimer = setTimeout(tick, 6000);
+  }, 5000);
+}
+function stopLivePositionPolling() {
+  if (livePositionTimer) {
+    clearTimeout(livePositionTimer);
+    livePositionTimer = null;
+  }
+}
+async function fetchLivePosition() {
+  if (!State.sessionCode) return;
+  try {
+    const data = await Api.getLeaderboard({ code: State.sessionCode });
+    if (!data.scores || data.scores.length === 0) {
+      $('livePosition').innerHTML = '';
+      return;
+    }
+    // Find this player's best score so far
+    let rank = -1;
+    let totalPlayers = data.scores.length;
+    for (let i = 0; i < data.scores.length; i++) {
+      if (String(data.scores[i].name).toLowerCase() === String(State.playerName).toLowerCase()) {
+        if (State.score > Number(data.scores[i].score)) {
+          // Player's current score would push them higher
+          // Count how many players have higher than current
+          let above = 0;
+          for (let j = 0; j < data.scores.length; j++) {
+            if (Number(data.scores[j].score) > State.score && data.scores[j].name !== State.playerName) above++;
+          }
+          rank = above + 1;
+        } else {
+          rank = i + 1;
+        }
+        break;
+      }
+    }
+    // If player not yet on leaderboard, project rank based on current score
+    if (rank === -1) {
+      let above = 0;
+      for (let j = 0; j < data.scores.length; j++) {
+        if (Number(data.scores[j].score) > State.score) above++;
+      }
+      rank = above + 1;
+      totalPlayers = data.scores.length + 1;
+    }
+    const isLead = rank === 1;
+    const ordinal = ordinalize(rank);
+    $('livePosition').innerHTML =
+      `You are <span class="pos-rank ${isLead ? 'lead' : ''}">${ordinal}</span> of <b>${totalPlayers}</b>`;
+  } catch (err) {
+    // silent fail — live position is decorative
+  }
+}
+function ordinalize(n) {
+  const s = ['th','st','nd','rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
 function renderQuestion() {
@@ -1866,7 +1899,7 @@ function renderQuestion() {
 
   $('qNum').textContent = State.currentQ + 1;
   $('progressBar').style.width = (State.currentQ / State.questions.length * 100) + '%';
-  $('scoreChip').textContent = State.score + ' pts';
+  updateScoreChip(State.score, false);
   $('qPrompt').textContent = q.prompt;
   $('qText').textContent = q.text || '';
   $('flagDisplay').textContent = q.flag || '';
@@ -1940,6 +1973,11 @@ function handleAnswer(answer, btn) {
     earned = POINTS_BASE + timeBonus + (State.streak - 1) * POINTS_STREAK_BONUS;
     State.score += earned;
     Sound.correct();
+    // Animate the score chip + show floating points
+    setTimeout(() => {
+      updateScoreChip(State.score, true);
+      showScorePop(earned);
+    }, 300);
   } else {
     State.streak = 0;
     if (answer === null) Sound.timeout(); else Sound.wrong();
@@ -1983,6 +2021,7 @@ function showFeedback(correct, q, earned) {
 }
 
 async function endGame() {
+  stopLivePositionPolling();
   Sound.finish();
   $('progressBar').style.width = '100%';
 
@@ -2107,6 +2146,68 @@ function showLobby() {
   $('lobbyPin').textContent = State.sessionCode;
   $('lobbyMeta').innerHTML = `<b>${State.questions.length}</b> questions · <b>${State.region === 'all' ? 'All Africa' : State.region}</b> · <b>${State.mode}</b>`;
   showScreen('lobby');
+  // Start polling the lobby live feed
+  startLobbyFeedPolling();
+}
+
+/* =========================================================
+   HOST LOBBY LIVE FEED
+   Polls every 4 seconds while the host is in the lobby screen.
+   Stops when the host navigates away.
+========================================================= */
+let lobbyFeedTimer = null;
+let lobbyFeedKnownNames = new Set();
+function startLobbyFeedPolling() {
+  stopLobbyFeedPolling();
+  lobbyFeedKnownNames = new Set();
+  if (!API_CONFIGURED || !State.sessionCode) {
+    $('hostLiveFeedList').innerHTML = '<div class="live-feed-empty">Backend not configured.</div>';
+    return;
+  }
+  fetchLobbyFeed();
+  lobbyFeedTimer = setInterval(fetchLobbyFeed, 4000);
+}
+function stopLobbyFeedPolling() {
+  if (lobbyFeedTimer) {
+    clearInterval(lobbyFeedTimer);
+    lobbyFeedTimer = null;
+  }
+}
+async function fetchLobbyFeed() {
+  if (!State.sessionCode) return;
+  try {
+    const data = await Api.getLeaderboard({ code: State.sessionCode });
+    const scores = data.scores || [];
+    const list = $('hostLiveFeedList');
+    if (scores.length === 0) {
+      list.innerHTML = '<div class="live-feed-empty">Waiting for players to finish their round…</div>';
+      return;
+    }
+    list.innerHTML = scores.map((s, i) => {
+      const isFresh = !lobbyFeedKnownNames.has(s.name);
+      const rankEmoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '·';
+      return `<div class="live-feed-item ${isFresh ? 'fresh' : ''}">
+        <span style="width:22px;text-align:center;">${rankEmoji}</span>
+        <div class="who">${escapeHtml(s.name || '?')}<small>${s.correct}/${s.total} · ${s.accuracy}%</small></div>
+        <div class="pts">${s.score}</div>
+      </div>`;
+    }).join('');
+    // Track who we've seen (so next refresh, only NEW players get the fresh flash)
+    if (lobbyFeedKnownNames.size === 0) {
+      // first load — don't flash anyone
+      scores.forEach(s => lobbyFeedKnownNames.add(s.name));
+    } else {
+      scores.forEach(s => {
+        if (!lobbyFeedKnownNames.has(s.name)) {
+          // brand new player just finished — play a soft cue
+          Sound.reveal && Sound.reveal();
+          lobbyFeedKnownNames.add(s.name);
+        }
+      });
+    }
+  } catch (err) {
+    // silent fail
+  }
 }
 
 async function joinFlow() {
@@ -2163,17 +2264,48 @@ async function flushScoreQueue() {
 }
 
 /* =========================================================
-   LEADERBOARDS
+   LEADERBOARDS — with auto-refresh on session leaderboard
 ========================================================= */
+let sessionLbTimer = null;
+let sessionLbKnownNames = new Set();
+
 async function loadSessionLb(code) {
   $('sessionLbPin').textContent = code;
   $('sessionLbList').innerHTML = '<div class="lb-empty">Loading...</div>';
+  sessionLbKnownNames = new Set();
+  await refreshSessionLbOnce(code);
+  startSessionLbAutoRefresh(code);
+}
+
+function startSessionLbAutoRefresh(code) {
+  stopSessionLbAutoRefresh();
+  sessionLbTimer = setInterval(() => refreshSessionLbOnce(code), 4000);
+}
+function stopSessionLbAutoRefresh() {
+  if (sessionLbTimer) {
+    clearInterval(sessionLbTimer);
+    sessionLbTimer = null;
+  }
+}
+
+async function refreshSessionLbOnce(code) {
   try {
     const data = await Api.getLeaderboard({ code });
-    renderLbList('sessionLbList', data.scores);
+    renderLbList('sessionLbList', data.scores, sessionLbKnownNames);
     $('sessionLbInfo').innerHTML = `${data.scores.length} player${data.scores.length === 1 ? '' : 's'}`;
+    // After first render, start tracking names so newcomers flash
+    if (sessionLbKnownNames.size === 0 && data.scores.length > 0) {
+      data.scores.forEach(s => sessionLbKnownNames.add(s.name));
+    } else {
+      data.scores.forEach(s => {
+        if (!sessionLbKnownNames.has(s.name)) {
+          sessionLbKnownNames.add(s.name);
+          // optional sound on new player
+        }
+      });
+    }
   } catch (err) {
-    $('sessionLbList').innerHTML = `<div class="lb-empty">Could not load: ${escapeHtml(err.message)}</div>`;
+    $('sessionLbList').innerHTML = `<div class="lb-empty">Could not refresh: ${escapeHtml(err.message)}</div>`;
   }
 }
 
@@ -2191,7 +2323,7 @@ async function loadGlobalLb() {
   }
 }
 
-function renderLbList(elId, scores) {
+function renderLbList(elId, scores, knownNames) {
   const el = $(elId);
   if (!scores || scores.length === 0) {
     el.innerHTML = '<div class="lb-empty">No scores yet — be the first.</div>';
@@ -2200,7 +2332,8 @@ function renderLbList(elId, scores) {
   el.innerHTML = scores.map((s, i) => {
     const cls = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
     const date = s.timestamp ? new Date(s.timestamp).toLocaleDateString() : '';
-    return `<div class="lb-row ${cls}">
+    const isFresh = knownNames && knownNames.size > 0 && !knownNames.has(s.name);
+    return `<div class="lb-row ${cls} ${isFresh ? 'fresh' : ''}">
       <div class="rank">${i + 1}</div>
       <div class="who">${escapeHtml(s.name || '?')}<small>${s.correct}/${s.total} · ${escapeHtml(s.region || 'all')} · ${date}</small></div>
       <div class="pts">${s.score}</div>
@@ -2214,6 +2347,12 @@ function renderLbList(elId, scores) {
 function $(id) { return document.getElementById(id); }
 
 function showScreen(id) {
+  // Stop any per-screen polling
+  const currentActive = document.querySelector('.screen.active');
+  const wasOn = currentActive ? currentActive.id : '';
+  if (wasOn === 'screen-lobby' && id !== 'lobby') stopLobbyFeedPolling();
+  if (wasOn === 'screen-session-lb' && id !== 'session-lb') stopSessionLbAutoRefresh();
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $('screen-' + id).classList.add('active');
   $('screen-' + id).scrollTop = 0;
@@ -2378,7 +2517,7 @@ $('shareScore').addEventListener('click', async () => {
 // Session leaderboard
 $('refreshSessionLb').addEventListener('click', () => {
   Sound.tap();
-  loadSessionLb(State.sessionCode);
+  refreshSessionLbOnce(State.sessionCode);
 });
 
 $('shareSessionLb').addEventListener('click', async () => {
