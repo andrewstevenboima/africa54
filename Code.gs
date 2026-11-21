@@ -23,6 +23,7 @@
  *            and Deploy. The URL stays the same.
  */
 
+// Optional when this script was opened from the Sheet itself (Extensions → Apps Script).
 const SHEET_ID = 'PASTE_YOUR_GOOGLE_SHEET_ID_HERE';
 
 const SHEETS = {
@@ -51,10 +52,17 @@ function doPost(e) {
   return route_(params);
 }
 
+const WRITE_ACTIONS = { createSession: 1, joinSession: 1, submitScore: 1, closeSession: 1 };
+
 function route_(p) {
   const action = (p.action || 'ping').toString();
   let result;
+  let lock = null;
   try {
+    if (WRITE_ACTIONS[action]) {
+      lock = LockService.getScriptLock();
+      lock.waitLock(20000); // a class finishing together queues up instead of clobbering rows
+    }
     switch (action) {
       case 'ping':                 result = { ok: true, time: new Date().toISOString(), version: '1.0' }; break;
       case 'getQuestions':         result = getQuestions_(p); break;
@@ -69,6 +77,8 @@ function route_(p) {
     }
   } catch (err) {
     result = { ok: false, error: String(err && err.message || err) };
+  } finally {
+    if (lock) { try { lock.releaseLock(); } catch (e) {} }
   }
   return ContentService
     .createTextOutput(JSON.stringify(result))
@@ -78,7 +88,13 @@ function route_(p) {
 /* =========================================================
    SHEET HELPERS
 ========================================================= */
-function ss_() { return SpreadsheetApp.openById(SHEET_ID); }
+function ss_() {
+  // Opened from the Sheet (Extensions → Apps Script)? Then no ID is needed.
+  if (SHEET_ID && SHEET_ID.indexOf('PASTE_') !== 0) return SpreadsheetApp.openById(SHEET_ID);
+  const active = SpreadsheetApp.getActiveSpreadsheet();
+  if (!active) throw new Error('Set SHEET_ID at the top of Code.gs, or open this script from the Sheet (Extensions → Apps Script).');
+  return active;
+}
 
 function sheet_(name) {
   const s = ss_().getSheetByName(name);
@@ -98,10 +114,15 @@ function rowsAsObjects_(sheetName) {
   }).filter(o => Object.values(o).some(v => v !== '' && v !== null && v !== undefined));
 }
 
+// Text typed by players (names) must never run as a formula in the Sheet.
+function safe_(v) {
+  return (typeof v === 'string' && /^[=+\-@\t\r]/.test(v)) ? "'" + v : v;
+}
+
 function appendRow_(sheetName, obj) {
   const s = sheet_(sheetName);
   const headers = HEADERS[sheetName];
-  const row = headers.map(h => obj[h] !== undefined ? obj[h] : '');
+  const row = headers.map(h => safe_(obj[h] !== undefined ? obj[h] : ''));
   s.appendRow(row);
 }
 
@@ -119,7 +140,7 @@ function getQuestions_(p) {
   );
 
   if (region && region !== 'all') {
-    pool = pool.filter(q => String(q.region).trim() === region);
+    pool = pool.filter(q => String(q.region).trim() === region || String(q.region).trim() === 'all');
   }
 
   if (mode === 'flags') {
@@ -136,8 +157,20 @@ function getQuestions_(p) {
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
 
-  const finalCount = mode === 'marathon' ? pool.length : Math.min(count, pool.length);
-  const picked = pool.slice(0, finalCount);
+  let picked;
+  if (mode === 'marathon') {
+    // One question per country (54 for all Africa), like the in-app marathon.
+    const seen = {};
+    picked = pool.filter(q => {
+      if (String(q.type) === 'custom') return false;
+      const key = String(q.type) === 'capital-country' || String(q.type) === 'flag-country' ? q.correct : q.text;
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  } else {
+    picked = pool.slice(0, Math.min(count, pool.length));
+  }
 
   return { ok: true, questions: picked, total: picked.length };
 }
@@ -202,8 +235,8 @@ function joinSession_(p) {
     return { ok: false, error: 'This session has been closed.' };
   }
 
-  // touch player record
-  upsertPlayer_(name);
+  // touch player record (last seen only; the game is counted when the score comes in)
+  upsertPlayer_(name, 0, false);
 
   // fetch the locked-in questions for this session
   const ids = String(session.question_ids).split(',').map(s => s.trim()).filter(Boolean);
@@ -266,7 +299,7 @@ function submitScore_(p) {
     code, name, score, correct, total, accuracy, mode, region, best_streak
   });
 
-  upsertPlayer_(name, score);
+  upsertPlayer_(name, score, true);
 
   return { ok: true, score, accuracy, code };
 }
@@ -275,8 +308,14 @@ function getLeaderboard_(p) {
   const code = String(p.code || '').trim().toUpperCase();
   if (!code) return { ok: false, error: 'Session code required.' };
 
-  const scores = rowsAsObjects_(SHEETS.SCORES)
+  const best = {};
+  rowsAsObjects_(SHEETS.SCORES)
     .filter(s => String(s.code).toUpperCase() === code)
+    .forEach(s => {
+      const key = String(s.name).toLowerCase();
+      if (!best[key] || Number(s.score) > Number(best[key].score)) best[key] = s;
+    });
+  const scores = Object.keys(best).map(k => best[k])
     .sort((a, b) => Number(b.score) - Number(a.score));
 
   return { ok: true, code, scores, count: scores.length };
@@ -293,7 +332,7 @@ function getGlobalLeaderboard_(p) {
 /* =========================================================
    PLAYERS
 ========================================================= */
-function upsertPlayer_(name, scoreToAdd) {
+function upsertPlayer_(name, scoreToAdd, countGame) {
   const s = sheet_(SHEETS.PLAYERS);
   const data = s.getDataRange().getValues();
   const now = new Date().toISOString();
@@ -302,7 +341,7 @@ function upsertPlayer_(name, scoreToAdd) {
     if (String(data[i][0]).toLowerCase() === name.toLowerCase()) {
       // update last_seen, increment games & points
       s.getRange(i + 1, 3).setValue(now); // last_seen
-      s.getRange(i + 1, 4).setValue((Number(data[i][3]) || 0) + 1); // games_played
+      if (countGame) s.getRange(i + 1, 4).setValue((Number(data[i][3]) || 0) + 1); // games_played
       if (scoreToAdd) {
         s.getRange(i + 1, 5).setValue((Number(data[i][4]) || 0) + scoreToAdd); // total_points
       }
@@ -312,7 +351,7 @@ function upsertPlayer_(name, scoreToAdd) {
   // new player
   appendRow_(SHEETS.PLAYERS, {
     name, first_seen: now, last_seen: now,
-    games_played: 1, total_points: scoreToAdd || 0
+    games_played: countGame ? 1 : 0, total_points: scoreToAdd || 0
   });
 }
 
@@ -324,7 +363,7 @@ function setupSheets() {
   Object.keys(HEADERS).forEach(name => {
     let sh = ss.getSheetByName(name);
     if (!sh) sh = ss.insertSheet(name);
-    sh.clear();
+    // Safe to run again: existing rows (sessions, scores, players) are kept.
     sh.getRange(1, 1, 1, HEADERS[name].length).setValues([HEADERS[name]]);
     sh.getRange(1, 1, 1, HEADERS[name].length)
       .setFontWeight('bold')

@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Africa54" />
 <link rel="manifest" href="manifest.json" />
-<link rel="icon" type="image/png" href="icons/icon-192.png" />
-<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="icon" type="image/png" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
 <title>Africa54 — The ALU Knowledge Game</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1117,6 +1117,7 @@
     .splash-mark { width: 88px; height: 88px; }
     .splash-title { font-size: 36px; }
   }
+  .backend-note { margin-top: 14px; font-size: 13px; line-height: 1.5; color: var(--gold-light); opacity: .85; }
 </style>
 </head>
 <body>
@@ -2026,7 +2027,7 @@ async function endGame() {
   $('progressBar').style.width = '100%';
 
   const total = State.questions.length;
-  const acc = Math.round(State.correct / total * 100);
+  const acc = total ? Math.round(State.correct / total * 100) : 0;
   const grade =
     acc === 100 ? 'Ubuntu' :
     acc >= 80 ? 'Sankofa' :
@@ -2105,7 +2106,7 @@ async function startPracticeFlow() {
 
 async function generateSessionCode() {
   if (!API_CONFIGURED) {
-    toast('Backend not configured. See README to connect Google Sheets.', 'error');
+    toast('Class games need the Google Sheets backend, which is not connected yet. Practice Solo works now.', 'error');
     return;
   }
   const hostName = $('hostName').value.trim();
@@ -2210,8 +2211,13 @@ async function fetchLobbyFeed() {
   }
 }
 
+function normalizePin(raw) {
+  const digits = String(raw || '').toUpperCase().replace(/^A54/, '').replace(/[^0-9]/g, '');
+  return digits.length === 4 ? 'A54-' + digits : String(raw || '').trim().toUpperCase();
+}
+
 async function joinFlow() {
-  const pin = $('joinPin').value.trim().toUpperCase();
+  const pin = normalizePin($('joinPin').value);
   const name = $('joinName').value.trim();
   if (!pin) { toast('Enter the game PIN'); return; }
   if (!name) { toast('Enter your name'); return; }
@@ -2580,6 +2586,16 @@ if ('serviceWorker' in navigator) {
 ========================================================= */
 (async function init() {
   await refreshHomeStats();
+  if (!API_CONFIGURED) {
+    ['generateCode', 'joinGame'].forEach(id => {
+      const btn = $(id);
+      if (!btn || !btn.parentElement) return;
+      const note = document.createElement('p');
+      note.className = 'backend-note';
+      note.textContent = 'Class games are not connected yet: the Google Sheets backend still needs to be set up (see README). Practice Solo works now.';
+      btn.parentElement.insertAdjacentElement('afterend', note);
+    });
+  }
   // Try to flush any queued offline scores when online
   if (navigator.onLine && API_CONFIGURED) flushScoreQueue();
   window.addEventListener('online', () => { if (API_CONFIGURED) flushScoreQueue(); });
