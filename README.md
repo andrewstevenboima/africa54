@@ -53,6 +53,7 @@ This opens the script editor in a new tab.
    const SHEET_ID = 'PASTE_YOUR_GOOGLE_SHEET_ID_HERE';
    ```
    Replace `PASTE_YOUR_GOOGLE_SHEET_ID_HERE` with the SHEET ID you copied in Step 1.
+   (Optional: if you opened Apps Script from the Sheet via **Extensions → Apps Script**, the script finds the Sheet by itself and you can leave this line as it is.)
 6. Click 💾 **Save** (or Ctrl/Cmd-S)
 
 ### Step 4 · Initialize the Sheets
